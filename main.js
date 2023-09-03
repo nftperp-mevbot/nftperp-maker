@@ -37,17 +37,17 @@ async function main(){
                 await lt.cancelAllLimitOrders();
     
                 for (const price of longPrices) {
-                    await lt.createLimitOrder('long', price.toFixed(1), 5);
+                    await lt.createLimitOrder('long', price.toFixed(1), 10);
                 }
     
                 for (const price of shortPrices) {
-                    await lt.createLimitOrder('short', price.toFixed(1), 5);
+                    await lt.createLimitOrder('short', price.toFixed(1), 10);
                 }
             }
     
             await new Promise(r => setTimeout(r, 60000));
         } catch (e) {
-            
+
         }
 
     }
