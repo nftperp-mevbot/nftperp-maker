@@ -25,26 +25,31 @@ async function main(){
     
 
     while (true){
-        const markPrice = parseFloat(await lt.getPrice());
-        const shortPrices = Array.from({ length: 5 }, (_, i) => markPrice * (1 + (i + 1) / 100));
-        const longPrices = Array.from({ length: 5 }, (_, i) => markPrice * (1 - (i + 1) / 100));
-
-
-        const { buySum, sellSum } = await lt.sumBuyAndSellOrders();
-
-        if (buySum < 40 | sellSum < 40) {
-            await lt.cancelAllLimitOrders();
-
-            for (const price of longPrices) {
-                await lt.createLimitOrder('long', price.toFixed(1), 5);
+        try{
+            const markPrice = parseFloat(await lt.getPrice());
+            const shortPrices = Array.from({ length: 5 }, (_, i) => markPrice * (1 + (i + 1) / 100));
+            const longPrices = Array.from({ length: 5 }, (_, i) => markPrice * (1 - (i + 1) / 100));
+    
+    
+            const { buySum, sellSum } = await lt.sumBuyAndSellOrders();
+    
+            if (buySum < 40 | sellSum < 40) {
+                await lt.cancelAllLimitOrders();
+    
+                for (const price of longPrices) {
+                    await lt.createLimitOrder('long', price.toFixed(1), 5);
+                }
+    
+                for (const price of shortPrices) {
+                    await lt.createLimitOrder('short', price.toFixed(1), 5);
+                }
             }
-
-            for (const price of shortPrices) {
-                await lt.createLimitOrder('short', price.toFixed(1), 5);
-            }
+    
+            await new Promise(r => setTimeout(r, 60000));
+        } catch (e) {
+            
         }
 
-        await new Promise(r => setTimeout(r, 60000));
     }
 }
 
