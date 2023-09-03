@@ -19,13 +19,17 @@ async function main(){
     const config = JSON.parse(configData);
     const exposure = config.EXPOSURE;
 
-    const lt = new liveTrader(signer);
+    const lt = new liveTrader(signer, 'bayc', testnet=true);
     await lt.initialize();
+
+    console.log(await lt.getPosition())
+    console.log(await lt.sumBuyAndSellOrders())
 
     console.log(await lt.getETHBalance())
     console.log(await lt.getBalance())
 
-    // await lt.cancelAllLimitOrders();
+
+    await lt.cancelAllLimitOrders();
 }
 
 main()

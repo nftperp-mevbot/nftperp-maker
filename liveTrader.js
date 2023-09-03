@@ -6,9 +6,10 @@ const ERC20_ABI = require("./abi/ERC20.json");
 
 class liveTrader {
 
-    constructor(signer, testnet = true) {
+    constructor(signer, amm, testnet = true) {
         this.signer = signer;
         this.PUBLIC_KEY = signer.address;
+        this.amm = amm;
         this.DOMAIN_NAME = testnet ? 'https://api.nftperp.xyz' : 'https://live.nftperp.xyz';
     }
 
@@ -16,8 +17,12 @@ class liveTrader {
     async initialize(){
         let res = await axios.get(`${this.DOMAIN_NAME}/contracts`);        
         this.ADDRESSES = res.data.data;
-        console.log(this.ADDRESSES.clearingHouse)
         this.clearingHouse = new ethers.Contract(this.ADDRESSES.clearingHouse, CH_ABI.abi, this.signer);
+    }
+
+    async getPosition() {
+        const res = await axios.get(`${this.DOMAIN_NAME}/position?amm=${this.amm}&trader=${this.PUBLIC_KEY}`);
+        return res.data.data;
     }
 
     async getBalance() {
@@ -34,28 +39,26 @@ class liveTrader {
     }
 
     async cancelAllLimitOrders() {
-        const res = await axios.get(`${this.DOMAIN_NAME}/orders?amm=bayc&trader=${this.PUBLIC_KEY}`);
+        const res = await axios.get(`${this.DOMAIN_NAME}/orders?amm=${this.amm}&trader=${this.PUBLIC_KEY}`);
         const orders = res.data.data;
 
         for (const order of orders) {
-            console.log(order)
-            const tx = await this.clearingHouse.deleteLimitOrder(order.amm, order.id);
-            await tx.wait();
+            const tx = await this.clearingHouse.deleteLimitOrder(String(order.id));
         }
     }
 
     async sumBuyAndSellOrders() {
-        const res = await axios.get(`${this.DOMAIN_NAME}/orders?amm=bayc&trader=${this.PUBLIC_KEY}`);
+        const res = await axios.get(`${this.DOMAIN_NAME}/orders?amm=${this.amm}&trader=${this.PUBLIC_KEY}`);
         const orders = res.data.data;
 
         let buySum = 0;
         let sellSum = 0;
 
         for (const order of orders) {
-            if (order.side === 1) {
-                buySum += order.size;
+            if (order.side === 0) {
+                buySum += order.size * order.price;
             } else {
-                sellSum += order.size;
+                sellSum += order.size * order.price;
             }
         }
 
