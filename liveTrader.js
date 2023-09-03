@@ -6,11 +6,12 @@ const ERC20_ABI = require("./abi/ERC20.json");
 
 class liveTrader {
 
-    constructor(signer, amm, testnet = true) {
+    constructor(signer, amm, leverage=1, testnet = true) {
         this.signer = signer;
         this.PUBLIC_KEY = signer.address;
         this.amm = amm;
         this.DOMAIN_NAME = testnet ? 'https://api.nftperp.xyz' : 'https://live.nftperp.xyz';
+        this.leverage = ethers.utils.parseUnits(leverage.toString(), 18);
     }
 
     //initialize the contracts
@@ -18,6 +19,12 @@ class liveTrader {
         let res = await axios.get(`${this.DOMAIN_NAME}/contracts`);        
         this.ADDRESSES = res.data.data;
         this.clearingHouse = new ethers.Contract(this.ADDRESSES.clearingHouse, CH_ABI.abi, this.signer);
+        this.AMM_ADDRESS = this.ADDRESSES.amms[this.amm];
+    }
+
+    async getPrice(){
+        const res = await axios.get(`${this.DOMAIN_NAME}/markPrice?amm=${this.amm}`);
+        return res.data.data;
     }
 
     async getPosition() {
@@ -45,6 +52,35 @@ class liveTrader {
         for (const order of orders) {
             const tx = await this.clearingHouse.deleteLimitOrder(String(order.id));
         }
+    }
+
+    async createLimitOrder(side, price, amount) {
+        const Side = { LONG: 0, SHORT: 1 }; 
+        
+        const order = {
+            trader: this.PUBLIC_KEY,
+            amm: this.AMM_ADDRESS,
+            side: Side[side.toUpperCase()],
+            trigger: ethers.utils.parseUnits(price.toString(), 18),
+            quoteAmount: ethers.utils.parseUnits(amount.toString(), 18),
+            leverage: this.leverage,
+            reduceOnly: false
+        };
+
+        console.log({
+            trader: this.PUBLIC_KEY,
+            amm: this.AMM_ADDRESS,
+            side: side.toUpperCase(),
+            trigger: price.toString(),
+            quoteAmount: amount.toString(),
+            leverage: this.leverage,
+            reduceOnly: false
+        })
+
+        const tx = await this.clearingHouse.createLimitOrder(order);
+        await tx.wait();
+    
+        return tx;
     }
 
     async sumBuyAndSellOrders() {

@@ -19,17 +19,33 @@ async function main(){
     const config = JSON.parse(configData);
     const exposure = config.EXPOSURE;
 
-    const lt = new liveTrader(signer, 'bayc', testnet=true);
+    const lt = new liveTrader(signer, 'bayc', leverage=1, testnet=true);
     await lt.initialize();
-
-    console.log(await lt.getPosition())
-    console.log(await lt.sumBuyAndSellOrders())
-
-    console.log(await lt.getETHBalance())
-    console.log(await lt.getBalance())
-
-
     await lt.cancelAllLimitOrders();
+    
+
+    while (true){
+        const markPrice = parseFloat(await lt.getPrice());
+        const shortPrices = Array.from({ length: 5 }, (_, i) => markPrice * (1 + (i + 1) / 100));
+        const longPrices = Array.from({ length: 5 }, (_, i) => markPrice * (1 - (i + 1) / 100));
+
+
+        const { buySum, sellSum } = await lt.sumBuyAndSellOrders();
+
+        if (buySum < 40 | sellSum < 40) {
+            await lt.cancelAllLimitOrders();
+
+            for (const price of longPrices) {
+                await lt.createLimitOrder('long', price.toFixed(1), 5);
+            }
+
+            for (const price of shortPrices) {
+                await lt.createLimitOrder('short', price.toFixed(1), 5);
+            }
+        }
+
+        await new Promise(r => setTimeout(r, 60000));
+    }
 }
 
 main()
