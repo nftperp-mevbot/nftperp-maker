@@ -32,7 +32,7 @@ async function main(){
     
     
             const { buySum, sellSum } = await lt.sumBuyAndSellOrders();
-    
+            console.log(buySum, sellSum)
             if (buySum < 40 | sellSum < 40) {
                 await lt.cancelAllLimitOrders();
     
