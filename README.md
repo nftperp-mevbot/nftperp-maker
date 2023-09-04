@@ -43,7 +43,7 @@ liveTrader.js is a library that streamlines the process of trading on the NFTPer
 
 **Parameters:**
 
-    signer: An Ethereum signe.
+    signer: An Ethereum signer.
     amm: Denotes the chosen market.
     leverage: The leverage trader is willing to use, with a default of 1.
     testnet: A boolean flag indicating if the system operates in testnet mode (default is true).
