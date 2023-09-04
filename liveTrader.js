@@ -55,7 +55,15 @@ class liveTrader {
         const orders = res.data.data;
 
         for (const order of orders) {
-            const tx = await this.clearingHouse.deleteLimitOrder(String(order.id));
+
+            for (var i=0; i<5; i++){
+                try{
+                    const tx = await this.clearingHouse.deleteLimitOrder(String(order.id));
+                    break;
+                } catch (e) {
+                    await new Promise((r) => setTimeout(r, 2000));
+                }
+            }
         }
     }
 
