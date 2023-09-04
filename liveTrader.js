@@ -83,6 +83,19 @@ class liveTrader {
         return tx;
     }
 
+    async cancelLimitOrder(side, price){
+        const res = await axios.get(`${this.DOMAIN_NAME}/orders?amm=${this.amm}&trader=${this.PUBLIC_KEY}`);
+        const orders = res.data.data;
+
+        for (const order of orders) {
+            if (order.side === side && order.trigger === price) {
+                const tx = await this.clearingHouse.deleteLimitOrder(String(order.id));
+                await tx.wait();
+                return tx;
+            }
+        }
+    }
+
     async sumBuyAndSellOrders() {
         const res = await axios.get(`${this.DOMAIN_NAME}/orders?amm=${this.amm}&trader=${this.PUBLIC_KEY}`);
         const orders = res.data.data;
@@ -100,6 +113,21 @@ class liveTrader {
 
         return { buySum, sellSum };
     }
+
+    async getOrders(){
+        const res = await axios.get(`${this.DOMAIN_NAME}/orderbook?amm=${this.amm}`);
+        const allOrders = res.data.data.levels;
+
+        const buyOrders = allOrders
+        .filter(order => order.side === 1)
+        .sort((a, b) => a.price - b.price); // Sort by price in ascending order for buy orders
+
+        const sellOrders = allOrders
+            .filter(order => order.side === 0)
+            .sort((a, b) => b.price - a.price); // Sort by price in descending order for sell orders
+
+        return { buyOrders, sellOrders };
+    }   
 }
 
 module.exports = liveTrader;
