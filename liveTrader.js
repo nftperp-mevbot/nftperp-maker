@@ -27,6 +27,11 @@ class liveTrader {
         return res.data.data;
     }
 
+    async getIndexPrice(){
+        const res = await axios.get(`${this.DOMAIN_NAME}/indexPrice?amm=${this.amm}`);
+        return res.data.data;
+    }
+
     async getPosition() {
         const res = await axios.get(`${this.DOMAIN_NAME}/position?amm=${this.amm}&trader=${this.PUBLIC_KEY}`);
         return res.data.data;
@@ -55,32 +60,41 @@ class liveTrader {
     }
 
     async createLimitOrder(side, price, amount) {
-        const Side = { LONG: 0, SHORT: 1 }; 
+
+        for (var i=0; i<5; i++){
+            try{
+                const Side = { LONG: 0, SHORT: 1 }; 
         
-        const order = {
-            trader: this.PUBLIC_KEY,
-            amm: this.AMM_ADDRESS,
-            side: Side[side.toUpperCase()],
-            trigger: ethers.utils.parseUnits(price.toString(), 18),
-            quoteAmount: ethers.utils.parseUnits(amount.toString(), 18),
-            leverage: this.leverage,
-            reduceOnly: false
-        };
+                const order = {
+                    trader: this.PUBLIC_KEY,
+                    amm: this.AMM_ADDRESS,
+                    side: Side[side.toUpperCase()],
+                    trigger: ethers.utils.parseUnits(price.toString(), 18),
+                    quoteAmount: ethers.utils.parseUnits(amount.toString(), 18),
+                    leverage: this.leverage,
+                    reduceOnly: false
+                };
+                
 
-        console.log({
-            trader: this.PUBLIC_KEY,
-            amm: this.AMM_ADDRESS,
-            side: side.toUpperCase(),
-            trigger: price.toString(),
-            quoteAmount: amount.toString(),
-            leverage: this.leverage,
-            reduceOnly: false
-        })
+                console.log({
+                    trader: this.PUBLIC_KEY,
+                    amm: this.AMM_ADDRESS,
+                    side: side.toUpperCase(),
+                    trigger: price.toString(),
+                    quoteAmount: amount.toString(),
+                    leverage: this.leverage,
+                    reduceOnly: false
+                })
 
-        const tx = await this.clearingHouse.createLimitOrder(order);
-        await tx.wait();
-    
-        return tx;
+                const tx = await this.clearingHouse.createLimitOrder(order);
+                await tx.wait();
+            
+                return tx;
+            } catch (e) {
+                await new Promise((r) => setTimeout(r, 2000));
+            }
+        }
+        
     }
 
     async cancelLimitOrder(side, price){
