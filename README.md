@@ -39,7 +39,7 @@ The algorithm inspects the current position of the trader. If the position is ne
 # LiveTrader
 liveTrader.js is a library that streamlines the process of trading on the NFTPerp Platform. It is to be instanciated using the following constructor:
 
-> constructor(signer, amm, leverage=1, testnet = true)
+    constructor(signer, amm, leverage=1, testnet = true)
 
 **Parameters:**
 
