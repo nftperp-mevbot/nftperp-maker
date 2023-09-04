@@ -2,8 +2,11 @@
 
 This repository provides a few demo market making strategies to market make on the NFTPerp Platform
 
+## 1. Simple Strategy
+simple.js is a simple trading strategy for getting started on market making at NFTPerp. This strategy creates 5 limit orders at the both side of the orderbook and recreates them when enough order has been taken.
 
-## 1. Platform Strategy
+
+## 2. Platform Strategy
 platform.js is designed to optimize liquidity provision on NFTPerp  by placing limit orders on both the buy and sell side of the order book, biased towards the less popular direction. The approach ensures a balance in liquidity provision while maximizing trading rewards. This strategy is ideal for the exchange but it might not be the best strategy for market makers who want to maximize rewards.
 
 ### Working Mechanism
@@ -28,7 +31,7 @@ Several parameters in the config file allow users to customize the strategy:
 - SLEEP_TIME: Sets the delay between actions to avoid nonce errors.
 
 
-## 2. Maker Strategy
+## 3. Maker Strategy
 positionAdaptiveStrategy.js will first place limit orders on both sides. It will then adjusts its market-making approach based on the trader's current position. If the trader has a net short position, the algorithm will place more aggressive buy limit orders, attempting to buy at more favorable prices. Conversely, if the trader has a net long position, the algorithm will place more aggressive sell limit orders, aiming to sell at higher prices. This strategy aims to maximize the trader's returns by considering their current market position and adjusting their market-making behavior accordingly.
 
 ### Working Mechanism
