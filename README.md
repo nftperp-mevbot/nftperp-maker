@@ -17,11 +17,15 @@ As market prices fluctuate, this strategy assesses the balance of active positio
 
 Several parameters in the config file allow users to customize the strategy:
 
-SPREAD: Determines the distance between the market price and placed orders.
-ORDER_COUNT: Specifies the number of orders placed on each side of the market.
-TARGET_ETH: Defines the sum of total limit orders in both side
-ORDER_PERCENTAGE_THRESHOLD: Sets the percentage that dictates when the difference between buy and sell order totals is significant enough to trigger adjustments.
-SLEEP_TIME: Sets the delay between actions to avoid nonce errors.
+- SPREAD: Determines the distance between the market price and placed orders.
+
+- ORDER_COUNT: Specifies the number of orders placed on each side of the market.
+
+- TARGET_ETH: Defines the sum of total limit orders in both side
+
+- ORDER_PERCENTAGE_THRESHOLD: Sets the percentage that dictates when the difference between buy and sell order totals is significant enough to trigger adjustments.
+
+- SLEEP_TIME: Sets the delay between actions to avoid nonce errors.
 
 
 ## 2. Maker Strategy
