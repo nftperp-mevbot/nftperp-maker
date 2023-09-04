@@ -9,16 +9,13 @@ simple.js is a simple trading strategy for getting started on market making at N
 ## 2. Platform Strategy
 platform.js is designed to optimize liquidity provision on NFTPerp  by placing limit orders on both the buy and sell side of the order book, biased towards the less popular direction. The approach ensures a balance in liquidity provision while maximizing trading rewards. This strategy is ideal for the exchange but it might not be the best strategy for market makers who want to maximize rewards.
 
-### Working Mechanism
 This algorithm uses a pre-defined distribution based on hyperparameters to create N limit orders, whose distribution can skewed more towards the mark price. 
 
 ![Strategy Image](platform.png)
 
-As market prices fluctuate, this strategy assesses the balance of active positions, taking into account both buying and selling orders. If an imbalance is detected between the buy and sell orders, the strategy takes corrective measures by canceling orders that lie outside the current market price bounds and replaces them with new ones, reflecting the updated market conditions. 
+As market prices fluctuate, this strategy assesses the balance of orders and if an imbalance is detected between the buy and sell orders, the strategy cancels orders that lie outside the current market price bounds and replaces them with new ones, reflecting the updated market conditions. 
 
 **Configuration:**
-
-Several parameters in the config file allow users to customize the strategy:
 
 - SPREAD: Determines the distance between the market price and placed orders.
 
@@ -32,11 +29,7 @@ Several parameters in the config file allow users to customize the strategy:
 
 
 ## 3. Maker Strategy
-positionAdaptiveStrategy.js will first place limit orders on both sides. It will then adjusts its market-making approach based on the trader's current position. If the trader has a net short position, the algorithm will place more aggressive buy limit orders, attempting to buy at more favorable prices. Conversely, if the trader has a net long position, the algorithm will place more aggressive sell limit orders, aiming to sell at higher prices. This strategy aims to maximize the trader's returns by considering their current market position and adjusting their market-making behavior accordingly.
-
-### Working Mechanism
-
-The algorithm inspects the current position of the trader. If the position is net short, it places more buy limit orders to buy assets at lower prices. If the position is net long, it places more sell limit orders to sell assets at higher prices. By dynamically adjusting based on the current position, the algorithm can attempt to buy low and sell high, potentially maximizing profits for the trader.
+maker.js will first place limit orders on both sides. It will then adjusts its market-making approach based on the trader's current position. If the trader has a net short position, the algorithm will place more aggressive buy limit orders. Conversely, if the trader has a net long position, the algorithm will place more aggressive sell limit orders.
 
 
 # LiveTrader
