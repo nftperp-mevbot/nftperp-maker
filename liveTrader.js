@@ -55,24 +55,17 @@ class liveTrader {
         const orders = res.data.data;
 
         for (const order of orders) {
-
-            for (var i=0; i<5; i++){
-                try{
-                    const tx = await this.clearingHouse.deleteLimitOrder(String(order.id));
-                    break;
-                } catch (e) {
-                    await new Promise((r) => setTimeout(r, 2000));
-                }
-            }
+            const tx = await this.clearingHouse.deleteLimitOrder(String(order.id));
         }
     }
 
     async createLimitOrder(side, price, amount) {
 
         for (var i=0; i<5; i++){
+            
             try{
                 const Side = { LONG: 0, SHORT: 1 }; 
-        
+
                 const order = {
                     trader: this.PUBLIC_KEY,
                     amm: this.AMM_ADDRESS,
@@ -99,10 +92,47 @@ class liveTrader {
             
                 return tx;
             } catch (e) {
+                console.log("error", e)
                 await new Promise((r) => setTimeout(r, 2000));
             }
         }
-        
+    }
+
+    async updateLimitOrder(id, side, price, amount) {
+
+        for (var i=0; i<5; i++){
+            try {
+                const Side = { LONG: 0, SHORT: 1 }; 
+
+                const order = {
+                    trader: this.PUBLIC_KEY,
+                    amm: this.AMM_ADDRESS,
+                    side: Side[side.toUpperCase()],
+                    trigger: ethers.utils.parseUnits(price.toString(), 18),
+                    quoteAmount: ethers.utils.parseUnits(amount.toString(), 18),
+                    leverage: this.leverage,
+                    reduceOnly: false
+                };
+
+                console.log('update', id, {
+                    trader: this.PUBLIC_KEY,
+                    amm: this.AMM_ADDRESS,
+                    side: side.toUpperCase(),
+                    trigger: price.toString(),
+                    quoteAmount: amount.toString(),
+                    leverage: this.leverage,
+                    reduceOnly: false
+                })
+
+                const tx = await this.clearingHouse.updateLimitOrder(id, order);
+                await tx.wait();
+            
+                return tx;
+            } catch (e) {
+                console.log("error", e)
+                await new Promise((r) => setTimeout(r, 2000));
+            }
+        }
     }
 
     async cancelLimitOrder(side, price){
@@ -116,6 +146,13 @@ class liveTrader {
                 return tx;
             }
         }
+    }
+
+    async cancelOrder(orderId){
+        console.log("Cancelling", String(orderId))
+        const tx = await this.clearingHouse.deleteLimitOrder(String(orderId));
+        await tx.wait();
+        return tx;
     }
 
     async sumBuyAndSellOrders() {
@@ -135,17 +172,32 @@ class liveTrader {
 
         return { buySum, sellSum };
     }
+    
+    async getMyOrders() {
+        const res = await axios.get(`${this.DOMAIN_NAME}/orders?amm=${this.amm}&trader=${this.PUBLIC_KEY}`);
+        const allOrders = res.data.data;
 
-    async getOrders(){
+        const buyOrders = allOrders
+        .filter(order => order.side === 0)
+        .sort((a, b) => a.price - b.price); // Sort by price in ascending order for buy orders
+
+        const sellOrders = allOrders
+            .filter(order => order.side === 1)
+            .sort((a, b) => b.price - a.price); // Sort by price in descending order for sell orders
+
+        return { buyOrders, sellOrders };
+    }
+
+    async getOrders() {
         const res = await axios.get(`${this.DOMAIN_NAME}/orderbook?amm=${this.amm}`);
         const allOrders = res.data.data.levels;
 
         const buyOrders = allOrders
-        .filter(order => order.side === 1)
+        .filter(order => order.side === 0)
         .sort((a, b) => a.price - b.price); // Sort by price in ascending order for buy orders
 
         const sellOrders = allOrders
-            .filter(order => order.side === 0)
+            .filter(order => order.side === 1)
             .sort((a, b) => b.price - a.price); // Sort by price in descending order for sell orders
 
         return { buyOrders, sellOrders };
