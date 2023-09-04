@@ -34,9 +34,16 @@ async function updateOrders(lt){
 
     
     const { buyOrders,  sellOrders } = await lt.getMyOrders()
-    
+
+    // console.log("indexPrice")
+    // console.log(indexPrice)    
     // console.log("markPrice")
     // console.log(markPrice)
+    // console.log("longPrice")
+    // console.log(longPrice)
+    // console.log("shortPrice")
+    // console.log(shortPrice)
+
     // console.log("Buy Prices")
     // console.log(longPrices)
     // console.log("Sell Prices")
@@ -106,13 +113,15 @@ async function make_market(symbol){
     }
 }
 
-parentPort.on('message', (amm) => {
-    try {
-        console.log(amm);
-        make_market(amm);
-        parentPort.postMessage({ status: 'done', amm });
-    } catch (e) {
-        console.error(`Error processing ${amm}`);
-        parentPort.postMessage({ status: 'error', amm });
-    }
-});
+make_market('milady')
+
+// parentPort.on('message', (amm) => {
+//     try {
+//         console.log(amm);
+//         make_market(amm);
+//         parentPort.postMessage({ status: 'done', amm });
+//     } catch (e) {
+//         console.error(`Error processing ${amm}`);
+//         parentPort.postMessage({ status: 'error', amm });
+//     }
+// });
