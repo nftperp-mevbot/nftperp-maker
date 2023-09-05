@@ -4,5 +4,7 @@
     "SKEWNESS": 0.42,
     "ORDER_COUNT": 5,
     "SPREAD": 0,
-    "SLEEP_TIME": 2000
+    "SLEEP_TIME": 2000,
+    "SIZE_MULTIPLIER": 3,
+    "DEVIATION_THRESHOLD": 0.3
 }

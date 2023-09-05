@@ -14,6 +14,23 @@ let provider = new ethers.providers.AlchemyProvider(
 
 let signer = new ethers.Wallet(process.env.MAKER_KEY, provider);
 
+async function getBuySellTarget(lt){
+    const configData = fs.readFileSync('config.json', 'utf8');
+    let config = JSON.parse(configData);
+    let buy_target = config.TARGET_ETH
+    let sell_target = config.TARGET_ETH
+
+    const positionSize = await lt.getPositionSize();
+
+    if (positionSize > 0) {
+        buy_target = buy_target - (Math.abs(positionSize) / config.SIZE_MULTIPLIER)
+    } else if (positionSize < 0) {
+        sell_target = sell_target - (Math.abs(positionSize) / config.SIZE_MULTIPLIER)
+    }
+
+    return { buy_target, sell_target }
+}
+
 async function updateOrders(lt){
     const configData = fs.readFileSync('config.json', 'utf8');
     let config = JSON.parse(configData);
@@ -22,33 +39,37 @@ async function updateOrders(lt){
     const indexPrice = parseFloat(await lt.getIndexPrice());
 
 
+
     const longPrice = Math.min(markPrice, indexPrice)  * (1 - parseFloat(config.SPREAD))
     const shortPrice = Math.max(markPrice, indexPrice)  * (1 + parseFloat(config.SPREAD))
     
     const longPrices = Array.from({ length: config.ORDER_COUNT }, (_, i) => Math.min(longPrice * (1 - (i + 1) / 100), markPrice - 0.001));
     const shortPrices = Array.from({ length: config.ORDER_COUNT }, (_, i) => Math.max(shortPrice * (1 + (i + 1) / 100), markPrice + 0.001));
+    
+    let { buy_target, sell_target } = await getBuySellTarget(lt);
 
-
-    const buyDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, config.TARGET_ETH);
-    const sellDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, config.TARGET_ETH);
+    const buyDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, buy_target);
+    const sellDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, sell_target);
 
     
+
+    console.log(`---------------------- Trading Information ----------------------`);
+    console.log(`Index Price: ${indexPrice}`);
+    console.log(`Mark Price: ${markPrice}`);
+    console.log(`Long Price: ${longPrice}`);
+    console.log(`Short Price: ${shortPrice}`);
+    console.log(`------------------------------------------------------------------`);
+    console.log(`Buy Prices: \n${longPrices.join('\n')}`);
+    console.log(`------------------------------------------------------------------`);
+    console.log(`Sell Prices: \n${shortPrices.join('\n')}`);
+    console.log(`------------------------------------------------------------------`);
+    console.log(`Buy Distribution: \n${buyDistribution.join('\n')}`);
+    console.log(`------------------------------------------------------------------`);
+    console.log(`Sell Distribution: \n${sellDistribution.join('\n')}`);
+    console.log(`------------------------------------------------------------------`);
+
     const { buyOrders,  sellOrders } = await lt.getMyOrders()
-
-    // console.log("indexPrice")
-    // console.log(indexPrice)    
-    // console.log("markPrice")
-    // console.log(markPrice)
-    // console.log("longPrice")
-    // console.log(longPrice)
-    // console.log("shortPrice")
-    // console.log(shortPrice)
-
-    // console.log("Buy Prices")
-    // console.log(longPrices)
-    // console.log("Sell Prices")
-    // console.log(shortPrices)
-    
+        
     if (buyOrders.length > config.ORDER_COUNT) {
         for (var i=config.ORDER_COUNT; i < buyOrders.length; i++ ) {
             await lt.cancelOrder(buyOrders[i].id);
@@ -100,28 +121,27 @@ async function make_market(symbol){
             let config = JSON.parse(configData);
 
             const { buySum, sellSum } = await lt.sumBuyAndSellOrders();
+            let { buy_target, sell_target } = await getBuySellTarget(lt);
 
-            if (buySum < config.TARGET_ETH * 0.8 | sellSum < config.TARGET_ETH * 0.8) {
+            if ((Math.abs(buySum - buy_target) > buy_target * config.DEVIATION_THRESHOLD) | (Math.abs(sellSum - sell_target) > sell_target * config.DEVIATION_THRESHOLD)) {
                 await updateOrders(lt);
             }
     
             await new Promise(r => setTimeout(r, 60000));
         } catch (e) {
-            console.log("Error")
+            console.log("Error", e)
         }
 
     }
 }
 
-make_market('milady')
-
-// parentPort.on('message', (amm) => {
-//     try {
-//         console.log(amm);
-//         make_market(amm);
-//         parentPort.postMessage({ status: 'done', amm });
-//     } catch (e) {
-//         console.error(`Error processing ${amm}`);
-//         parentPort.postMessage({ status: 'error', amm });
-//     }
-// });
+parentPort.on('message', (amm) => {
+    try {
+        console.log(amm);
+        make_market(amm);
+        parentPort.postMessage({ status: 'done', amm });
+    } catch (e) {
+        console.error(`Error processing ${amm}`);
+        parentPort.postMessage({ status: 'error', amm });
+    }
+});

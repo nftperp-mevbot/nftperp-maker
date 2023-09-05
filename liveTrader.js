@@ -37,6 +37,11 @@ class liveTrader {
         return res.data.data;
     }
 
+    async getPositionSize(){
+        const position = await this.getPosition();
+        return parseFloat(position.size) * parseFloat(position.markPrice);
+    }
+
     async getBalance() {
         const wethContract = new ethers.Contract(this.ADDRESSES.weth, ERC20_ABI.abi, this.signer);
         const wethBalanceWei = await wethContract.balanceOf(this.PUBLIC_KEY);
