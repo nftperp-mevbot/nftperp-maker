@@ -1,18 +1,5 @@
-const { parentPort } = require('worker_threads');
-const { ethers } = require("ethers");
 const fs = require("fs");
-const liveTrader = require('./liveTrader');
-const {generateDistribution, roundUp, roundDown} = require('./utils');
 
-require("dotenv").config();
-
-
-let provider = new ethers.providers.AlchemyProvider(
-    'arbitrum',
-    process.env.ALCHEMY_KEY
-);
-
-let signer = new ethers.Wallet(process.env.MAKER_KEY, provider);
 
 async function getBuySellTarget(lt){
     const configData = fs.readFileSync('config.json', 'utf8');
@@ -31,23 +18,29 @@ async function getBuySellTarget(lt){
     return { buy_target, sell_target }
 }
 
-async function updateOrders(lt){
-    const configData = fs.readFileSync('config.json', 'utf8');
-    let config = JSON.parse(configData);
-
+async function getPriceDistributions(lt){
     const markPrice = parseFloat(await lt.getPrice());
     const indexPrice = parseFloat(await lt.getIndexPrice());
-
-
 
     const longPrice = Math.min(markPrice, indexPrice)  * (1 - parseFloat(config.SPREAD))
     const shortPrice = Math.max(markPrice, indexPrice)  * (1 + parseFloat(config.SPREAD))
     
     const longPrices = Array.from({ length: config.ORDER_COUNT }, (_, i) => Math.min(longPrice * (1 - (i + 1) / 100), markPrice - 0.001));
     const shortPrices = Array.from({ length: config.ORDER_COUNT }, (_, i) => Math.max(shortPrice * (1 + (i + 1) / 100), markPrice + 0.001));
+
+    return {markPrice, indexPrice, longPrices, shortPrices}
+}
+
+async function updateOrders(lt){
+    const configData = fs.readFileSync('config.json', 'utf8');
+    let config = JSON.parse(configData);
+
+
     
     let { buy_target, sell_target } = await getBuySellTarget(lt);
 
+
+    let {markPrice, indexPrice, longPrices, shortPrices} = getPriceDistributions(lt);
     const buyDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, buy_target);
     const sellDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, sell_target);
 
@@ -107,41 +100,26 @@ async function updateOrders(lt){
     }
 }
 
-async function make_market(symbol){
+function generateDistribution(orderCount, skewness, TARGET_ETH) {
+    let distribution = [];
 
-    const lt = new liveTrader(signer, symbol, leverage=1, testnet=true);
-    await lt.initialize();
-    await updateOrders(lt);
-    
-
-    while (true){
-        try{
-            
-            const configData = fs.readFileSync('config.json', 'utf8');
-            let config = JSON.parse(configData);
-
-            const { buySum, sellSum } = await lt.sumBuyAndSellOrders();
-            let { buy_target, sell_target } = await getBuySellTarget(lt);
-
-            if ((Math.abs(buySum - buy_target) > buy_target * config.DEVIATION_THRESHOLD) | (Math.abs(sellSum - sell_target) > sell_target * config.DEVIATION_THRESHOLD)) {
-                await updateOrders(lt);
-            }
-    
-            await new Promise(r => setTimeout(r, 60000));
-        } catch (e) {
-            console.log("Error", e)
-        }
-
+    for (let i = 0; i < orderCount; i++) {
+        distribution.push(Math.pow(skewness, i));
     }
+
+    const sum = distribution.reduce((acc, val) => acc + val, 0);
+    distribution = distribution.map(val => (val / sum) * TARGET_ETH);
+    return distribution;
 }
 
-parentPort.on('message', (amm) => {
-    try {
-        console.log(amm);
-        make_market(amm);
-        parentPort.postMessage({ status: 'done', amm });
-    } catch (e) {
-        console.error(`Error processing ${amm}`);
-        parentPort.postMessage({ status: 'error', amm });
-    }
-});
+function roundUp(num, decimalPlaces) {
+    const factor = Math.pow(10, decimalPlaces);
+    return Math.ceil(num * factor) / factor;
+}
+
+function roundDown(num, decimalPlaces) {
+    const factor = Math.pow(10, decimalPlaces);
+    return Math.floor(num * factor) / factor;
+}
+
+module.exports = {generateDistribution, updateOrders, getPriceDistributions};
