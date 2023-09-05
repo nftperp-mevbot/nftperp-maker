@@ -1,6 +1,5 @@
 {
     "TARGET_ETH": 50,
-    "ORDER_PERCENTAGE_THRESHOLD": 0.2,
     "SKEWNESS": 0.42,
     "ORDER_COUNT": 5,
     "SPREAD": 0,
