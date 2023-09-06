@@ -163,7 +163,7 @@ Fetches the trader's orderbook, segmented into buy and sell orders.
     Parameters: None.
     Return: Object containing arrays buyOrders and sellOrders, sorted by price.
 
-**10. getOrders()**
+**15. getOrders()**
 
 Retrieves the entire orderbook, segmented into buy and sell orders.
 
