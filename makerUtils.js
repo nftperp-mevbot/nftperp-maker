@@ -140,4 +140,4 @@ function roundDown(num, decimalPlaces) {
     return Math.floor(num * factor) / factor;
 }
 
-module.exports = {generateDistribution, updateOrders, getPriceDistributions, getLiveTrader, getConfig};
+module.exports = {generateDistribution, updateOrders, getPriceDistributions, getLiveTrader, getConfig, getBuySellTarget};
