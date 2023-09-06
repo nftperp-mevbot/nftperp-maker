@@ -1,5 +1,5 @@
 const axios = require("axios").default;
-const {updateOrders, getLiveTrader, getPriceDistributions, getConfig} = require('./makerUtils');
+const {updateOrders, getLiveTrader, getPriceDistributions, getConfig, getBuySellTarget} = require('./makerUtils');
 const CH_ABI = require("./abi/ClearingHouse.json");
 const { ethers } = require("ethers");
 
