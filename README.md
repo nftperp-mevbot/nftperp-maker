@@ -9,7 +9,7 @@ This repository creates limit orders on both sides of all pairs of the NFTPerp l
 ![Strategy Image](platform.png)
 
 
-Then, orders are constantly monitored. Orders are updated when the price deviates, or the sum of open orders deviates at a size greater than DEVIATION_THRESHOLD. If there is an active long exposure, the new orders will be larger on the short side and vice versa.
+Then, orders are constantly monitored. Orders are updated when the bids price deviates above the mark/index price at a rate of BID_UPDATE_GAP %, or the sum of open orders deviates at a size greater than DEVIATION_THRESHOLD. If there is an active long exposure, the new orders will be larger on the short side and vice versa.
 
 - The DEVIATION_THRESHOLD check exists because it would be expensive to actively create transactions and change orders after every trade. 
 
@@ -33,7 +33,7 @@ The configuration defined in config.json defines the following parameters:
 
 - DEVIATION_THRESHOLD: The deviation above which we modify the open orders
 
-
+- BID_UPDATE_GAP: The deviation betwen the mark/index and the order price, above which the orders are updated
 
 
 # LiveTrader
