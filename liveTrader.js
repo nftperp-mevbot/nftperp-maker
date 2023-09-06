@@ -16,10 +16,11 @@ class liveTrader {
 
     //initialize the contracts
     async initialize(){
-        let res = await axios.get(`${this.DOMAIN_NAME}/contracts`);        
+        let res = await axios.get(`${this.DOMAIN_NAME}/contracts`); 
         this.ADDRESSES = res.data.data;
-        this.clearingHouse = new ethers.Contract(this.ADDRESSES.clearingHouse, CH_ABI.abi, this.signer);
+        this.clearingHouse = await new ethers.Contract(this.ADDRESSES.clearingHouse, CH_ABI.abi, this.signer);
         this.AMM_ADDRESS = this.ADDRESSES.amms[this.amm];
+        return;
     }
 
     async getPrice(){

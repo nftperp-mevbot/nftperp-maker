@@ -1,9 +1,29 @@
 const fs = require("fs");
+const { ethers } = require("ethers");
+const liveTrader = require('./liveTrader');
+require("dotenv").config();
 
+async function getLiveTrader(amm){
+    let provider = new ethers.providers.AlchemyProvider(
+        'arbitrum',
+        process.env.ALCHEMY_KEY
+    );
 
-async function getBuySellTarget(lt){
+    let signer = new ethers.Wallet(process.env.MAKER_KEY, provider);
+    let lt = new liveTrader(signer, amm);
+    await lt.initialize();
+    return lt;
+}
+
+function getConfig(){
     const configData = fs.readFileSync('config.json', 'utf8');
     let config = JSON.parse(configData);
+    return config
+}
+
+async function getBuySellTarget(lt){
+    let config = getConfig()
+
     let buy_target = config.TARGET_ETH
     let sell_target = config.TARGET_ETH
 
@@ -19,11 +39,14 @@ async function getBuySellTarget(lt){
 }
 
 async function getPriceDistributions(lt){
+    let config = getConfig()
+
     const markPrice = parseFloat(await lt.getPrice());
     const indexPrice = parseFloat(await lt.getIndexPrice());
 
     const longPrice = Math.min(markPrice, indexPrice)  * (1 - parseFloat(config.SPREAD))
     const shortPrice = Math.max(markPrice, indexPrice)  * (1 + parseFloat(config.SPREAD))
+
     
     const longPrices = Array.from({ length: config.ORDER_COUNT }, (_, i) => Math.min(longPrice * (1 - (i + 1) / 100), markPrice - 0.001));
     const shortPrices = Array.from({ length: config.ORDER_COUNT }, (_, i) => Math.max(shortPrice * (1 + (i + 1) / 100), markPrice + 0.001));
@@ -32,15 +55,12 @@ async function getPriceDistributions(lt){
 }
 
 async function updateOrders(lt){
-    const configData = fs.readFileSync('config.json', 'utf8');
-    let config = JSON.parse(configData);
+    let config = getConfig()
 
-
-    
     let { buy_target, sell_target } = await getBuySellTarget(lt);
 
 
-    let {markPrice, indexPrice, longPrices, shortPrices} = getPriceDistributions(lt);
+    let {markPrice, indexPrice, longPrices, shortPrices} = await getPriceDistributions(lt);
     const buyDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, buy_target);
     const sellDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, sell_target);
 
@@ -49,8 +69,6 @@ async function updateOrders(lt){
     console.log(`---------------------- Trading Information ----------------------`);
     console.log(`Index Price: ${indexPrice}`);
     console.log(`Mark Price: ${markPrice}`);
-    console.log(`Long Price: ${longPrice}`);
-    console.log(`Short Price: ${shortPrice}`);
     console.log(`------------------------------------------------------------------`);
     console.log(`Buy Prices: \n${longPrices.join('\n')}`);
     console.log(`------------------------------------------------------------------`);
@@ -122,4 +140,4 @@ function roundDown(num, decimalPlaces) {
     return Math.floor(num * factor) / factor;
 }
 
-module.exports = {generateDistribution, updateOrders, getPriceDistributions};
+module.exports = {generateDistribution, updateOrders, getPriceDistributions, getLiveTrader, getConfig};
