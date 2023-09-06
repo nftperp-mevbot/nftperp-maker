@@ -38,6 +38,10 @@ async function getBuySellTarget(lt){
     return { buy_target, sell_target }
 }
 
+async function getDifference(firstPrice, secondPrice){
+    return (Math.abs(firstPrice - secondPrice) / firstPrice)
+}
+
 async function getPriceDistributions(lt){
     let config = getConfig()
 
@@ -47,7 +51,11 @@ async function getPriceDistributions(lt){
     const longPrice = Math.min(markPrice, indexPrice)  * (1 - parseFloat(config.SPREAD))
     const shortPrice = Math.max(markPrice, indexPrice)  * (1 + parseFloat(config.SPREAD))
 
-    
+    if (getDifference(markPrice, indexPrice) > config.MAX_DIFFERENCE){
+        longPrice = Math.min(markPrice, indexPrice)
+        shortPrice = Math.max(markPrice, indexPrice)
+    }
+
     const longPrices = Array.from({ length: config.ORDER_COUNT }, (_, i) => Math.min(longPrice * (1 - (i + 1) / 100), markPrice - 0.001));
     const shortPrices = Array.from({ length: config.ORDER_COUNT }, (_, i) => Math.max(shortPrice * (1 + (i + 1) / 100), markPrice + 0.001));
 
@@ -140,4 +148,4 @@ function roundDown(num, decimalPlaces) {
     return Math.floor(num * factor) / factor;
 }
 
-module.exports = {generateDistribution, updateOrders, getPriceDistributions, getLiveTrader, getConfig, getBuySellTarget};
+module.exports = {generateDistribution, updateOrders, getPriceDistributions, getLiveTrader, getConfig, getBuySellTarget, getDifference};
