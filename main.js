@@ -1,5 +1,5 @@
 const axios = require("axios").default;
-const {updateOrders, getLiveTrader, getPriceDistributions, getConfig, getBuySellTarget, getDifference } = require('./makerUtils');
+const {updateOrders, getLiveTrader, getPriceDistributions, getConfig} = require('./makerUtils');
 const CH_ABI = require("./abi/ClearingHouse.json");
 const { ethers } = require("ethers");
 
@@ -12,23 +12,28 @@ let provider = new ethers.providers.AlchemyProvider(
     process.env.ALCHEMY_KEY
 );
 
-async function make_market(lt){    
+async function make_market(lts){    
 
     while (true){
         try{
-            let config = getConfig()
+            for (let amm in lts) {
+                let lt = lts[amm]
+                let config = getConfig()
 
-            let {markPrice, indexPrice, longPrices, shortPrices} = await getPriceDistributions(lt)
+                let {markPrice, indexPrice, longPrices, shortPrices} = await getPriceDistributions(lt)
 
 
-            if (longPrices[0] > indexPrice  | shortPrices[0] < indexPrice | longPrices[0] < (Math.min(markPrice, indexPrice) * (1-config.BID_UPDATE_GAP)) | shortPrices[0] > (Math.max(markPrice, indexPrice) * (1+config.BID_UPDATE_GAP))){
-                console.log(`Conditional update for ${lt.amm} ${indexPrice} ${longPrices[0]} ${shortPrices[0]}`)
-                await updateOrders(lt);
+                if (longPrices[0] > indexPrice  | shortPrices[0] < indexPrice | longPrices[0] < (Math.min(markPrice, indexPrice) * (1-config.BID_UPDATE_GAP)) | shortPrices[0] > (Math.max(markPrice, indexPrice) * (1+config.BID_UPDATE_GAP))){
+                    console.log(`Conditional update for ${lt.amm} ${indexPrice} ${longPrices[0]} ${shortPrices[0]}`)
+                    await updateOrders(lt);
+                }
+
+                await new Promise(r => setTimeout(r, 1000));
             }
-    
-            await new Promise(r => setTimeout(r, 10000));
+            
+            await new Promise(r => setTimeout(r, 7000));
         } catch (e) {
-            console.log("Error", e)
+            console.log("Error in make market", e)
         }
 
     }
@@ -43,7 +48,12 @@ async function main() {
         lts[amm] = await getLiveTrader(amm);
         await updateOrders(lts[amm]);
 
-        make_market(lts[amm])
+        try{
+            make_market(lts)
+        } catch (e) {
+            console.log("Error", e)
+        }
+        
 
         await new Promise(r => setTimeout(r, 2000));
     }
@@ -57,19 +67,24 @@ async function main() {
     let ch_contract = new ethers.Contract(res.data.data.clearingHouse, CH_ABI['abi'], provider);
 
     ch_contract.on('PositionChanged', async (amm, trader, openNotional, size, exchangedQuote, exchangedSize, realizedPnL, fundingPayment, markPrice, ifFee, ammFee, limitFee, keeperFee, event) => {
-        let config = getConfig()
-        let amm_name = reverseLookup[amm]
-        let lt = lts[amm_name]
-
-        const { live_orders, buySum, sellSum } = await lt.sumBuyAndSellOrders();
-        let { buy_target, sell_target } = await getBuySellTarget(lt);
-
-        console.log(amm, trader, openNotional, size, exchangedQuote, exchangedSize, realizedPnL, fundingPayment, markPrice, ifFee, ammFee, limitFee, keeperFee, event)
-
-        if ((Math.abs(buySum - buy_target) > buy_target * config.DEVIATION_THRESHOLD) | (Math.abs(sellSum - sell_target) > sell_target * config.DEVIATION_THRESHOLD)) {
-            await updateOrders(lt);
-        }
         
+        try{
+            let config = getConfig()
+            let amm_name = reverseLookup[amm]
+            let lt = lts[amm_name]
+    
+            const { live_orders, buySum, sellSum } = await lt.sumBuyAndSellOrders();
+            let { buy_target, sell_target } = await getBuySellTarget(lt);
+    
+            console.log(amm, trader, openNotional, size, exchangedQuote, exchangedSize, realizedPnL, fundingPayment, markPrice, ifFee, ammFee, limitFee, keeperFee, event)
+    
+            if ((Math.abs(buySum - buy_target) > buy_target * config.DEVIATION_THRESHOLD) | (Math.abs(sellSum - sell_target) > sell_target * config.DEVIATION_THRESHOLD)) {
+                await updateOrders(lt);
+            }
+        } catch (e) {
+            console.log("Error", e)
+        }
+
     });
 }
 
