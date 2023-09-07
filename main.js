@@ -46,16 +46,15 @@ async function main() {
 
     for (let amm in amms) {
         lts[amm] = await getLiveTrader(amm);
-        await updateOrders(lts[amm]);
-
-        try{
-            make_market(lts)
-        } catch (e) {
-            console.log("Error", e)
-        }
-        
+        await updateOrders(lts[amm]);        
 
         await new Promise(r => setTimeout(r, 2000));
+    }
+
+    try{
+        make_market(lts)
+    } catch (e) {
+        console.log("Error", e)
     }
 
     const reverseLookup = {};
