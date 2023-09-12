@@ -39,6 +39,26 @@ async function make_market(lts){
     }
 }
 
+async function regularUpdates(){
+    while (true){
+        try{
+            //sleep for config.REGULAR_UPDATES hours
+            let config = getConfig()
+
+            await new Promise(r => setTimeout(r, 1000 * config.REGULAR_UPDATES * 60 * 60));
+
+            for (let amm in lts) {
+                let lt = lts[amm]
+                await updateOrders(lt);
+            }
+            
+        } catch (e) {
+            console.log("Error in regular updates", e)
+        }
+
+    }
+}
+
 async function main() {
     
     let res = await axios.get("https://api.nftperp.xyz/contracts");
@@ -53,6 +73,7 @@ async function main() {
 
     try{
         make_market(lts)
+        regularUpdates(lts)
     } catch (e) {
         console.log("Error", e)
     }
