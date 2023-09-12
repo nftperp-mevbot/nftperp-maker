@@ -1,7 +1,7 @@
 {
     "TARGET_ETH": 50,
     "SKEWNESS": 0.42,
-    "ORDER_COUNT": 5,
+    "ORDER_COUNT": 1,
     "SPREAD": 0,
     "SLEEP_TIME": 2000,
     "SIZE_MULTIPLIER": 3,
