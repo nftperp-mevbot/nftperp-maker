@@ -73,7 +73,7 @@ async function main() {
 
     try{
         make_market(lts)
-        regularUpdates(lts)
+        // regularUpdates(lts)
     } catch (e) {
         console.log("Error", e)
     }
@@ -95,10 +95,20 @@ async function main() {
     
             const { live_orders, buySum, sellSum } = await lt.sumBuyAndSellOrders();
             let { buy_target, sell_target } = await getBuySellTarget(lt);
-    
+            const { buyOrders,  sellOrders } = await lt.getMyOrders()
+            
+            let bid_gap = Math.abs((sellOrders[0] - buyOrders[0])/buyOrders[0] * 100)
+            console.log("Bid gap", bid_gap)
+
+            let indexPrice = await lt.getIndexPrice()
+            
+            let mark_index_gap = Math.abs((markPrice - indexPrice)/indexPrice * 100)
+
+
+            
             console.log(amm, trader, openNotional, size, exchangedQuote, exchangedSize, realizedPnL, fundingPayment, markPrice, ifFee, ammFee, limitFee, keeperFee, event)
     
-            if ((Math.abs(buySum - buy_target) > buy_target * config.DEVIATION_THRESHOLD) | (Math.abs(sellSum - sell_target) > sell_target * config.DEVIATION_THRESHOLD)) {
+            if (bid_gap > (mark_index_gap * config.GAP_MULTIPLE) | (Math.abs(buySum - buy_target) > buy_target * config.DEVIATION_THRESHOLD) | (Math.abs(sellSum - sell_target) > sell_target * config.DEVIATION_THRESHOLD)) {
                 await updateOrders(lt);
             }
         } catch (e) {

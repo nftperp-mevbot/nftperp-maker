@@ -65,6 +65,33 @@ class liveTrader {
         }
     }
 
+    async createLimitOrders(orders){
+        let allOrders = []
+        const Side = { LONG: 0, SHORT: 1 }; 
+
+        for(var i=0; i<orders.length; i++){
+
+            const order = {
+                trader: this.PUBLIC_KEY,
+                amm: this.AMM_ADDRESS,
+                side: Side[order.side.toUpperCase()],
+                trigger: ethers.utils.parseUnits(order.price.toString(), 18),
+                quoteAmount: ethers.utils.parseUnits(order.amount.toString(), 18),
+                leverage: this.leverage,
+                reduceOnly: false
+            };
+
+            allOrders.push(order)
+        }
+        
+        console.log(allOrders)
+
+        const tx = await this.clearingHouse.createLimitOrderBatch(allOrders);
+        await tx.wait();
+    
+        return tx;
+    }
+
     async createLimitOrder(side, price, amount) {
 
         for (var i=0; i<5; i++){
@@ -104,6 +131,36 @@ class liveTrader {
         }
     }
 
+    async updateLimitOrders(orders){
+        let ids = []
+        let allOrders = []
+
+        const Side = { LONG: 0, SHORT: 1 };
+
+        for(var i=0; i<orders.length; i++){
+                
+                const order = {
+                    trader: this.PUBLIC_KEY,
+                    amm: this.AMM_ADDRESS,
+                    side: Side[orders[i].side.toUpperCase()],
+                    trigger: ethers.utils.parseUnits(orders[i].price.toString(), 18),
+                    quoteAmount: ethers.utils.parseUnits(orders[i].amount.toString(), 18),
+                    leverage: this.leverage,
+                    reduceOnly: false
+                };
+    
+                allOrders.push(order)
+                ids.push(orders[i].id)
+        }
+
+        console.log(allOrders)
+        console.log(ids)
+
+        const tx = await this.clearingHouse.updateLimitOrderBatch(ids, allOrders);
+        await tx.wait();
+            
+        return tx;
+    }
     async updateLimitOrder(id, side, price, amount) {
 
         for (var i=0; i<5; i++){
@@ -152,6 +209,13 @@ class liveTrader {
                 return tx;
             }
         }
+    }
+
+    async cancelOrders(ids){
+        console.log(ids)
+        const tx = await this.clearingHouse.deleteLimitOrderBatch(ids);
+        await tx.wait();
+        return tx;
     }
 
     async cancelOrder(orderId){

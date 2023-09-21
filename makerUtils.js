@@ -88,40 +88,58 @@ async function updateOrders(lt){
     console.log(`------------------------------------------------------------------`);
 
     const { buyOrders,  sellOrders } = await lt.getMyOrders()
-        
+    
+    let ordersToCancel = []
+
     if (buyOrders.length > config.ORDER_COUNT) {
         for (var i=config.ORDER_COUNT; i < buyOrders.length; i++ ) {
-            await lt.cancelOrder(buyOrders[i].id);
-            await new Promise(r => setTimeout(r, config.SLEEP_TIME));
+            ordersToCancel.push(buyOrders[i].id);
         }
     }
 
     if (sellOrders.length > config.ORDER_COUNT) {
         for (var i=config.ORDER_COUNT; i < sellOrders.length; i++ ) {
-            await lt.cancelOrder(sellOrders[i].id);
-            await new Promise(r => setTimeout(r, config.SLEEP_TIME));
+            ordersToCancel.push(sellOrders[i].id);
         }
     }
+
+    if (ordersToCancel.length > 0){
+        console.log(`Cancelling ${ordersToCancel.length} orders`)
+        await lt.cancelOrders(ordersToCancel)
+        await new Promise(r => setTimeout(r, config.SLEEP_TIME));
+    }
+
+
+    let ordersToCreate = []
+    let ordersToUpdate = []
 
     for (var i=0; i < config.ORDER_COUNT; i++ ) {
         
         if (buyOrders[i] === undefined) {
-            await lt.createLimitOrder('long', roundDown(longPrices[i], 2), roundDown(buyDistribution[i], 2));
+            ordersToCreate.push({side: 'long', price: roundDown(longPrices[i], 2), amount: roundDown(buyDistribution[i], 2)})
         } else {
-            await lt.updateLimitOrder(buyOrders[i].id, 'long', roundDown(longPrices[i], 2), roundDown(buyDistribution[i], 2));
+            ordersToUpdate.push({id: buyOrders[i].id, side: 'long', price: roundDown(longPrices[i], 2), amount: roundDown(buyDistribution[i], 2)})
         }
-        
-        await new Promise(r => setTimeout(r, config.SLEEP_TIME));
     }
 
 
     for (var i=0; i < config.ORDER_COUNT; i++ ) {
         if (sellOrders[i] === undefined) {
-            await lt.createLimitOrder('short', roundUp(shortPrices[i], 2), roundUp(sellDistribution[i], 2));
+            ordersToCreate.push({side: 'short', price: roundUp(shortPrices[i], 2), amount: roundUp(sellDistribution[i], 2)})
         } else {
-            await lt.updateLimitOrder(sellOrders[i].id, 'short', roundUp(shortPrices[i], 2), roundUp(sellDistribution[i], 2));
+            ordersToUpdate.push({id: sellOrders[i].id, side: 'short', price: roundUp(shortPrices[i], 2), amount: roundUp(sellDistribution[i], 2)})
         }
+    }
 
+    if (ordersToCreate.length > 0){
+        console.log(`Creating ${ordersToCreate.length} orders`)
+        await lt.createOrders(ordersToCreate)
+        await new Promise(r => setTimeout(r, config.SLEEP_TIME));
+    }
+
+    if (ordersToUpdate.length > 0){
+        console.log(`Updating ${ordersToUpdate.length} orders`)
+        await lt.updateLimitOrders(ordersToUpdate)
         await new Promise(r => setTimeout(r, config.SLEEP_TIME));
     }
 }
