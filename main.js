@@ -101,7 +101,7 @@ async function main() {
             console.log("Bid gap", bid_gap)
 
             let indexPrice = await lt.getIndexPrice()
-            
+
             let mark_index_gap = Math.abs((markPrice - indexPrice)/indexPrice * 100)
 
 

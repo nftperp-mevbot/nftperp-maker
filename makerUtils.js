@@ -133,7 +133,7 @@ async function updateOrders(lt){
 
     if (ordersToCreate.length > 0){
         console.log(`Creating ${ordersToCreate.length} orders`)
-        await lt.createOrders(ordersToCreate)
+        await lt.createLimitOrders(ordersToCreate)
         await new Promise(r => setTimeout(r, config.SLEEP_TIME));
     }
 
