@@ -70,8 +70,9 @@ class liveTrader {
         const Side = { LONG: 0, SHORT: 1 }; 
 
         for(var i=0; i<orders.length; i++){
-
-            const order = {
+            let order = orders[i]
+            
+            const curr_order = {
                 trader: this.PUBLIC_KEY,
                 amm: this.AMM_ADDRESS,
                 side: Side[order.side.toUpperCase()],
@@ -81,7 +82,7 @@ class liveTrader {
                 reduceOnly: false
             };
 
-            allOrders.push(order)
+            allOrders.push(curr_order)
         }
         
         console.log(allOrders)
