@@ -10,7 +10,7 @@ class liveTrader {
         this.signer = signer;
         this.PUBLIC_KEY = signer.address;
         this.amm = amm;
-        this.DOMAIN_NAME = testnet ? 'https://api.nftperp.xyz' : 'https://live.nftperp.xyz';
+        this.DOMAIN_NAME = testnet ? 'http://127.0.0.1:3000' : 'https://live.nftperp.xyz';
         this.leverage = ethers.utils.parseUnits(leverage.toString(), 18);
     }
 

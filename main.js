@@ -61,7 +61,7 @@ async function regularUpdates(){
 
 async function main() {
     
-    let res = await axios.get("https://api.nftperp.xyz/contracts");
+    let res = await axios.get("http://127.0.0.1:3000/contracts");
     let amms = res.data.data.amms;
 
     for (let amm in amms) {
