@@ -97,13 +97,17 @@ async function main() {
             let { buy_target, sell_target } = await getBuySellTarget(lt);
             const { buyOrders,  sellOrders } = await lt.getMyOrders()
             
-            let bid_gap = Math.abs((sellOrders[0] - buyOrders[0])/buyOrders[0] * 100)
-            console.log("Bid gap", bid_gap)
+            let best_buy = buyOrders[buyOrders.length-1].price
+            let best_sell = sellOrders[sellOrders.length-1].price
+
+            let bid_gap = Math.abs((best_sell - best_buy)/best_buy * 100)
+
 
             let indexPrice = await lt.getIndexPrice()
 
             let mark_index_gap = Math.abs((markPrice - indexPrice)/indexPrice * 100)
 
+            console.log("Bid gap", bid_gap, "Mark index gap", mark_index_gap, "Multiplied", mark_index_gap * config.GAP_MULTIPLE)
 
             
             console.log(amm, trader, openNotional, size, exchangedQuote, exchangedSize, realizedPnL, fundingPayment, markPrice, ifFee, ammFee, limitFee, keeperFee, event)
