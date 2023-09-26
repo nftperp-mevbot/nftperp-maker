@@ -105,7 +105,7 @@ async function main() {
 
             let indexPrice = await lt.getIndexPrice()
 
-            let mark_index_gap = Math.abs((markPrice - indexPrice)/indexPrice * 100)
+            let mark_index_gap = Math.abs((ethers.utils.formatEther(markPrice) - indexPrice)/indexPrice * 100)
 
             console.log("Bid gap", bid_gap, "Mark index gap", mark_index_gap, "Multiplied", mark_index_gap * config.GAP_MULTIPLE)
 
