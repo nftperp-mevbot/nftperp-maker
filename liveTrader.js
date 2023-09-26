@@ -87,10 +87,17 @@ class liveTrader {
         
         console.log(allOrders)
 
-        const tx = await this.clearingHouse.createLimitOrderBatch(allOrders);
-        await tx.wait();
-    
-        return tx;
+        for (var i=0; i<5; i++){
+            try {
+                const tx = await this.clearingHouse.createLimitOrderBatch(allOrders);
+                await tx.wait();
+            
+                return tx;
+            } catch (e) {
+                console.log("error", e)
+                await new Promise((r) => setTimeout(r, 2000));
+            }
+        }
     }
 
     async createLimitOrder(side, price, amount) {
@@ -157,10 +164,18 @@ class liveTrader {
         console.log(allOrders)
         console.log(ids)
 
-        const tx = await this.clearingHouse.updateLimitOrderBatch(ids, allOrders);
-        await tx.wait();
-            
-        return tx;
+        for (var i=0; i<5; i++){
+            try {
+
+                const tx = await this.clearingHouse.updateLimitOrderBatch(ids, allOrders);
+                await tx.wait();
+                    
+                return tx;
+            } catch (e) {
+                console.log("error", e)
+                await new Promise((r) => setTimeout(r, 2000));
+            }
+        }
     }
     async updateLimitOrder(id, side, price, amount) {
 
@@ -214,9 +229,17 @@ class liveTrader {
 
     async cancelOrders(ids){
         console.log(ids)
-        const tx = await this.clearingHouse.deleteLimitOrderBatch(ids);
-        await tx.wait();
-        return tx;
+        
+        for (var i=0; i<5; i++){
+            try{
+                const tx = await this.clearingHouse.deleteLimitOrderBatch(ids);
+                await tx.wait();
+                return tx;
+            } catch (e) {
+                console.log("error", e)
+                await new Promise((r) => setTimeout(r, 2000));
+            }
+        }
     }
 
     async cancelOrder(orderId){
