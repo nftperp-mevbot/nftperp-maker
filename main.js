@@ -73,7 +73,7 @@ async function main() {
 
     try{
         make_market(lts)
-        // regularUpdates(lts)
+        regularUpdates(lts)
     } catch (e) {
         console.log("Error", e)
     }
@@ -96,23 +96,28 @@ async function main() {
             const { live_orders, buySum, sellSum } = await lt.sumBuyAndSellOrders();
             let { buy_target, sell_target } = await getBuySellTarget(lt);
             const { buyOrders,  sellOrders } = await lt.getMyOrders()
+
+            if (buyOrders.length > 0 | sellOrders.length > 0){
             
-            let best_buy = buyOrders[buyOrders.length-1].price
-            let best_sell = sellOrders[sellOrders.length-1].price
+                let best_buy = buyOrders[buyOrders.length-1].price
+                let best_sell = sellOrders[sellOrders.length-1].price
 
-            let bid_gap = Math.abs((best_sell - best_buy)/best_buy * 100)
+                let bid_gap = Math.abs((best_sell - best_buy)/best_buy * 100)
 
 
-            let indexPrice = await lt.getIndexPrice()
+                let indexPrice = await lt.getIndexPrice()
 
-            let mark_index_gap = Math.abs((ethers.utils.formatEther(markPrice) - indexPrice)/indexPrice * 100)
+                let mark_index_gap = Math.abs((ethers.utils.formatEther(markPrice) - indexPrice)/indexPrice * 100)
 
-            console.log("Bid gap", bid_gap, "Mark index gap", mark_index_gap, "Multiplied", mark_index_gap * config.GAP_MULTIPLE)
+                console.log("Bid gap", bid_gap, "Mark index gap", mark_index_gap, "Multiplied", mark_index_gap * config.GAP_MULTIPLE)
 
-            
-            console.log(amm, trader, openNotional, size, exchangedQuote, exchangedSize, realizedPnL, fundingPayment, markPrice, ifFee, ammFee, limitFee, keeperFee, event)
-    
-            if (bid_gap > (mark_index_gap * config.GAP_MULTIPLE) | (Math.abs(buySum - buy_target) > buy_target * config.DEVIATION_THRESHOLD) | (Math.abs(sellSum - sell_target) > sell_target * config.DEVIATION_THRESHOLD)) {
+                
+                console.log(amm, trader, openNotional, size, exchangedQuote, exchangedSize, realizedPnL, fundingPayment, markPrice, ifFee, ammFee, limitFee, keeperFee, event)
+        
+                if (bid_gap > (mark_index_gap * config.GAP_MULTIPLE) | (Math.abs(buySum - buy_target) > buy_target * config.DEVIATION_THRESHOLD) | (Math.abs(sellSum - sell_target) > sell_target * config.DEVIATION_THRESHOLD)) {
+                    await updateOrders(lt);
+                }
+            } else{
                 await updateOrders(lt);
             }
         } catch (e) {
