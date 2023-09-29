@@ -97,7 +97,7 @@ async function main() {
             let { buy_target, sell_target } = await getBuySellTarget(lt);
             const { buyOrders,  sellOrders } = await lt.getMyOrders()
 
-            if (buyOrders.length > 0 | sellOrders.length > 0){
+            if (buyOrders.length > 0 & sellOrders.length > 0){
             
                 let best_buy = buyOrders[buyOrders.length-1].price
                 let best_sell = sellOrders[sellOrders.length-1].price
