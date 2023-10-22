@@ -70,29 +70,37 @@ class liveTrader {
         const Side = { LONG: 0, SHORT: 1 }; 
 
         for(var i=0; i<orders.length; i++){
+            
             let order = orders[i]
             
-            const curr_order = {
-                trader: this.PUBLIC_KEY,
-                amm: this.AMM_ADDRESS,
-                side: Side[order.side.toUpperCase()],
-                trigger: ethers.utils.parseUnits(order.price.toString(), 18),
-                quoteAmount: ethers.utils.parseUnits(order.amount.toString(), 18),
-                leverage: this.leverage,
-                reduceOnly: false
-            };
-
-            allOrders.push(curr_order)
+            if (order.amount > 0){
+                const curr_order = {
+                    trader: this.PUBLIC_KEY,
+                    amm: this.AMM_ADDRESS,
+                    side: Side[order.side.toUpperCase()],
+                    trigger: ethers.utils.parseUnits(order.price.toString(), 18),
+                    quoteAmount: ethers.utils.parseUnits(order.amount.toString(), 18),
+                    leverage: this.leverage,
+                    reduceOnly: false
+                };
+    
+                allOrders.push(curr_order)
+            }
+            
         }
         
         console.log(allOrders)
 
         for (var i=0; i<5; i++){
             try {
-                const tx = await this.clearingHouse.createLimitOrderBatch(allOrders);
-                await tx.wait();
-            
-                return tx;
+
+                if (allOrders.length > 0){
+                    const tx = await this.clearingHouse.createLimitOrderBatch(allOrders);
+                    await tx.wait();
+                
+                    return tx;
+                }
+                
             } catch (e) {
                 console.log("error", e)
                 await new Promise((r) => setTimeout(r, 2000));
@@ -106,7 +114,7 @@ class liveTrader {
             
             try{
                 const Side = { LONG: 0, SHORT: 1 }; 
-
+                
                 const order = {
                     trader: this.PUBLIC_KEY,
                     amm: this.AMM_ADDRESS,
@@ -147,6 +155,7 @@ class liveTrader {
 
         for(var i=0; i<orders.length; i++){
                 
+            if (orders[i].amount > 0){
                 const order = {
                     trader: this.PUBLIC_KEY,
                     amm: this.AMM_ADDRESS,
@@ -159,6 +168,8 @@ class liveTrader {
     
                 allOrders.push(order)
                 ids.push(orders[i].id)
+            }
+                
         }
 
         console.log(allOrders)
@@ -167,12 +178,17 @@ class liveTrader {
         for (var i=0; i<5; i++){
             try {
 
-                console.log(ids)
-                console.log(allOrders)
-                const tx = await this.clearingHouse.updateLimitOrderBatch(ids, allOrders);
-                await tx.wait();
-                    
-                return tx;
+                if (allOrders.length > 0){
+                    console.log(ids)
+                    console.log(allOrders)
+                    const tx = await this.clearingHouse.updateLimitOrderBatch(ids, allOrders);
+                    await tx.wait();
+                        
+                    return tx;
+                } else {
+                    return;
+                }
+                
             } catch (e) {
                 console.log("error", e)
                 await new Promise((r) => setTimeout(r, 2000));
