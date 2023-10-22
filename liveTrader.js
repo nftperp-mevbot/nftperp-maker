@@ -167,6 +167,8 @@ class liveTrader {
         for (var i=0; i<5; i++){
             try {
 
+                console.log(ids)
+                console.log(allOrders)
                 const tx = await this.clearingHouse.updateLimitOrderBatch(ids, allOrders);
                 await tx.wait();
                     
