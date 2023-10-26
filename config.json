@@ -1,5 +1,5 @@
 {
-    "TARGET_ETH": 80,
+    "TARGET_ETH": 160,
     "SKEWNESS": 0.42,
     "ORDER_COUNT": 3,
     "SPREAD": 0,
