@@ -24,8 +24,19 @@ function getConfig(){
 async function getBuySellTarget(lt){
     let config = getConfig()
 
-    let buy_target = config.TARGET_ETH
-    let sell_target = config.TARGET_ETH
+    let buy_target
+    let sell_target
+
+    if (lt.amm === 'bayc'){
+        buy_target = config.APE_TARGET
+        sell_target = config.APE_TARGET
+
+    } else {
+        buy_target = config.TARGET_ETH
+        sell_target = config.TARGET_ETH
+    } 
+
+    
 
     const positionSize = await lt.getPositionSize();
 

@@ -1,5 +1,6 @@
 {
-    "TARGET_ETH": 160,
+    "TARGET_ETH": 80,
+    "APE_TARGET": 160,
     "SKEWNESS": 0.42,
     "ORDER_COUNT": 3,
     "SPREAD": 0,
