@@ -66,6 +66,7 @@ async function main() {
 
     for (let amm in amms) {
         lts[amm] = await getLiveTrader(amm);
+        await lts[amm].checkApproval();
         await updateOrders(lts[amm]);        
 
         await new Promise(r => setTimeout(r, 2000));
@@ -85,6 +86,7 @@ async function main() {
     }
 
     let ch_contract = new ethers.Contract(res.data.data.clearingHouse, CH_ABI['abi'], provider);
+    //check approval and approve first time
 
     ch_contract.on('PositionChanged', async (amm, trader, openNotional, size, exchangedQuote, exchangedSize, realizedPnL, fundingPayment, markPrice, ifFee, ammFee, limitFee, keeperFee, event) => {
         

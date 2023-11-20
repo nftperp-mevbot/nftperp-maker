@@ -23,6 +23,18 @@ class liveTrader {
         return;
     }
 
+    async checkApproval() {
+
+        const wethContract = new ethers.Contract(this.ADDRESSES.weth, ERC20_ABI.abi, this.signer);
+        const allowance_if = await wethContract.allowance(this.signer.getAddress(), res.data.data.insuranceFund);
+
+        if (allowance_if.lt(ethers.utils.parseEther('1000'))) {
+            console.log("Approving spending to CH")
+            await wethContract.approve(this.ADDRESSES.clearingHouse, ethers.constants.MaxUint256);
+        }
+
+    }
+
     async getPrice(){
         const res = await axios.get(`${this.DOMAIN_NAME}/markPrice?amm=${this.amm}`);
         return res.data.data;
