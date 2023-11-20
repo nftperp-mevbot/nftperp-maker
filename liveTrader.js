@@ -26,7 +26,7 @@ class liveTrader {
     async checkApproval() {
 
         const wethContract = new ethers.Contract(this.ADDRESSES.weth, ERC20_ABI.abi, this.signer);
-        const allowance_if = await wethContract.allowance(this.signer.getAddress(), res.data.data.insuranceFund);
+        const allowance_if = await wethContract.allowance(this.signer.getAddress(), this.ADDRESSES.clearingHouse);
 
         if (allowance_if.lt(ethers.utils.parseEther('1000'))) {
             console.log("Approving spending to CH")
