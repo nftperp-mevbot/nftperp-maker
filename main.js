@@ -60,14 +60,14 @@ async function regularUpdates(){
 }
 
 async function main() {
-    
+    let isFirstRun = process.argv.includes('--first');
     let res = await axios.get("http://api.nftperp.xyz/contracts");
     let amms = res.data.data.amms;
 
     for (let amm in amms) {
         lts[amm] = await getLiveTrader(amm);
         await lts[amm].checkApproval();
-        await updateOrders(lts[amm]);        
+        await updateOrders(lts[amm], isFirstRun);        
 
         await new Promise(r => setTimeout(r, 2000));
     }

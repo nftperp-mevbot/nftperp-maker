@@ -73,7 +73,7 @@ async function getPriceDistributions(lt){
     return {markPrice, indexPrice, longPrices, shortPrices}
 }
 
-async function updateOrders(lt){
+async function updateOrders(lt, first=false){
     let config = getConfig()
 
     let { buy_target, sell_target } = await getBuySellTarget(lt);
@@ -98,7 +98,12 @@ async function updateOrders(lt){
     console.log(`Sell Distribution: \n${sellDistribution.join('\n')}`);
     console.log(`------------------------------------------------------------------`);
 
-    const { buyOrders,  sellOrders } = await lt.getMyOrders()
+    let { buyOrders,  sellOrders } = await lt.getMyOrders()
+
+    if (first == true){
+        buyOrders = []
+        sellOrders = []
+    }
     
     let ordersToCancel = []
 
