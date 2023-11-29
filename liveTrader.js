@@ -37,8 +37,13 @@ class liveTrader {
     }
 
     async getPrice(){
-        const res = await axios.get(`${this.DOMAIN_NAME}/markPrice?amm=${this.amm}`);
-        return res.data.data;
+        try{
+            const res = await axios.get(`${this.DOMAIN_NAME}/markPrice?amm=${this.amm}`);
+            return res.data.data;
+        } catch (e) {
+            return getIndexPrice();
+        }
+        
     }
 
     async getIndexPrice(){
