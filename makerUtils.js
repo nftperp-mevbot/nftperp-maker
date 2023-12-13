@@ -56,11 +56,12 @@ async function getDifference(firstPrice, secondPrice){
 async function getPriceDistributions(lt, first=false){
     let config = getConfig()
 
-    const markPrice = parseFloat(await lt.getPrice());
+    let markPrice = parseFloat(await lt.getPrice());
     let indexPrice = parseFloat(await lt.getIndexPrice());
 
     if (first == true){
-        markPrice = indexPrice
+        markPrice = Math.max(indexPrice, markPrice)
+        indexPrice = Math.min(indexPrice, markPrice)
     }
 
     console.log("markPrice", markPrice);
