@@ -53,11 +53,18 @@ async function getDifference(firstPrice, secondPrice){
     return (Math.abs(firstPrice - secondPrice) / firstPrice)
 }
 
-async function getPriceDistributions(lt){
+async function getPriceDistributions(lt, first=false){
     let config = getConfig()
 
     const markPrice = parseFloat(await lt.getPrice());
-    const indexPrice = parseFloat(await lt.getIndexPrice());
+    let indexPrice = parseFloat(await lt.getIndexPrice());
+
+    if (first == true){
+        markPrice = indexPrice
+    }
+
+    console.log("markPrice", markPrice);
+    console.log("indexPrice", indexPrice);
 
     const longPrice = Math.min(markPrice, indexPrice)  * (1 - parseFloat(config.SPREAD))
     const shortPrice = Math.max(markPrice, indexPrice)  * (1 + parseFloat(config.SPREAD))
@@ -79,7 +86,7 @@ async function updateOrders(lt, first=false){
     let { buy_target, sell_target } = await getBuySellTarget(lt);
 
 
-    let {markPrice, indexPrice, longPrices, shortPrices} = await getPriceDistributions(lt);
+    let {markPrice, indexPrice, longPrices, shortPrices} = await getPriceDistributions(lt, first);
     const buyDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, buy_target);
     const sellDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, sell_target);
 
