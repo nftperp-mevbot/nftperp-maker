@@ -74,7 +74,7 @@ async function main() {
 
     try{
         make_market(lts)
-        regularUpdates(lts)
+        // regularUpdates(lts)
     } catch (e) {
         console.log("Error", e)
     }
