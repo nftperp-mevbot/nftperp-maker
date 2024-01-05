@@ -88,8 +88,7 @@ async function main() {
     let ch_contract = new ethers.Contract(res.data.data.clearingHouse, CH_ABI['abi'], provider);
     //check approval and approve first time
 
-    ch_contract.on('PositionChanged', async (amm, trader, openNotional, size, exchangedQuote, exchangedSize, realizedPnL, fundingPayment, markPrice, ifFee, ammFee, limitFee, keeperFee, event) => {
-        
+    contract.on('PositionChanged', async (amm, trader, margin, size, exchangedQuote, exchangedBase, realizedPnL, fundingPayment, markPrice, ifFee, ammFee, limitFee, liquidatorFee, keeperFee, tradeType, event) => {        
         try{
             let config = getConfig()
             let amm_name = reverseLookup[amm]
