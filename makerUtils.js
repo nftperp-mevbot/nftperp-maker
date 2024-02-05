@@ -4,13 +4,15 @@ const liveTrader = require('./liveTrader');
 require("dotenv").config();
 
 async function getLiveTrader(amm){
+    let config = getConfig()
+
     let provider = new ethers.providers.AlchemyProvider(
         'arbitrum',
         process.env.ALCHEMY_KEY
     );
 
     let signer = new ethers.Wallet(process.env.MAKER_KEY, provider);
-    let lt = new liveTrader(signer, amm, leverage=2, testnet=false);
+    let lt = new liveTrader(signer, amm, leverage=config.LEVERAGE, testnet=false);
     await lt.initialize();
     return lt;
 }

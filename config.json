@@ -1,5 +1,6 @@
 {
-    "TARGET_ETH": 4,
+    "TARGET_ETH": 2,
+    "LEVERAGE": 2,
     "SKEWNESS": 0.42,
     "ORDER_COUNT": 3,
     "SPREAD": 0,
