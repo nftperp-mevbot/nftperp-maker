@@ -6,7 +6,7 @@ const ERC20_ABI = require("./abi/ERC20.json");
 
 class liveTrader {
 
-    constructor(signer, amm, leverage=1, testnet = true) {
+    constructor(signer, amm, leverage=1, testnet = false) {
         this.signer = signer;
         this.PUBLIC_KEY = signer.address;
         this.amm = amm;

@@ -10,7 +10,7 @@ async function getLiveTrader(amm){
     );
 
     let signer = new ethers.Wallet(process.env.MAKER_KEY, provider);
-    let lt = new liveTrader(signer, amm);
+    let lt = new liveTrader(signer, amm, leverage=2, testnet=false);
     await lt.initialize();
     return lt;
 }
@@ -27,16 +27,8 @@ async function getBuySellTarget(lt){
     let buy_target
     let sell_target
 
-    if (lt.amm === 'bayc'){
-        buy_target = config.APE_TARGET
-        sell_target = config.APE_TARGET
-
-    } else {
-        buy_target = config.TARGET_ETH
-        sell_target = config.TARGET_ETH
-    } 
-
-    
+    buy_target = config.TARGET_ETH
+    sell_target = config.TARGET_ETH
 
     const positionSize = await lt.getPositionSize();
 
@@ -53,16 +45,11 @@ async function getDifference(firstPrice, secondPrice){
     return (Math.abs(firstPrice - secondPrice) / firstPrice)
 }
 
-async function getPriceDistributions(lt, first=false){
+async function getPriceDistributions(lt){
     let config = getConfig()
 
     let markPrice = parseFloat(await lt.getPrice());
     let indexPrice = parseFloat(await lt.getIndexPrice());
-
-    if (first == true){
-        markPrice = Math.max(indexPrice, markPrice)
-        indexPrice = Math.min(indexPrice, markPrice)
-    }
 
     console.log("markPrice", markPrice);
     console.log("indexPrice", indexPrice);
@@ -81,13 +68,13 @@ async function getPriceDistributions(lt, first=false){
     return {markPrice, indexPrice, longPrices, shortPrices}
 }
 
-async function updateOrders(lt, first=false){
+async function updateOrders(lt){
     let config = getConfig()
 
     let { buy_target, sell_target } = await getBuySellTarget(lt);
 
 
-    let {markPrice, indexPrice, longPrices, shortPrices} = await getPriceDistributions(lt, first);
+    let {markPrice, indexPrice, longPrices, shortPrices} = await getPriceDistributions(lt);
     const buyDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, buy_target);
     const sellDistribution = generateDistribution(config.ORDER_COUNT, config.SKEWNESS, sell_target);
 
@@ -108,11 +95,6 @@ async function updateOrders(lt, first=false){
 
     let { buyOrders,  sellOrders } = await lt.getMyOrders()
 
-    if (first == true){
-        buyOrders = []
-        sellOrders = []
-    }
-    
     let ordersToCancel = []
 
     if (buyOrders.length > config.ORDER_COUNT) {

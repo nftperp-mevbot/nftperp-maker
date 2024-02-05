@@ -42,15 +42,11 @@ async function make_market(lts){
 async function regularUpdates(){
     while (true){
         try{
-            //sleep for config.REGULAR_UPDATES hours
             let config = getConfig()
 
-            await new Promise(r => setTimeout(r, 1000 * config.REGULAR_UPDATES * 60 * 60));
+            await new Promise(r => setTimeout(r, 1000 * config.REGULAR_UPDATES));
 
-            for (let amm in lts) {
-                let lt = lts[amm]
-                await updateOrders(lt);
-            }
+            await make_market(lts)
             
         } catch (e) {
             console.log("Error in regular updates", e)
@@ -60,21 +56,20 @@ async function regularUpdates(){
 }
 
 async function main() {
-    let isFirstRun = process.argv.includes('--first');
-    let res = await axios.get("http://api.nftperp.xyz/contracts");
+    let res = await axios.get("http://live.nftperp.xyz/contracts");
     let amms = res.data.data.amms;
 
     for (let amm in amms) {
         lts[amm] = await getLiveTrader(amm);
         await lts[amm].checkApproval();
-        await updateOrders(lts[amm], isFirstRun);        
+        await updateOrders(lts[amm]);        
 
         await new Promise(r => setTimeout(r, 2000));
     }
 
     try{
         make_market(lts)
-        // regularUpdates(lts)
+        regularUpdates(lts)
     } catch (e) {
         console.log("Error", e)
     }
@@ -126,6 +121,8 @@ async function main() {
         }
 
     });
+
+    //add back the every 10 secs
 }
 
 main()
