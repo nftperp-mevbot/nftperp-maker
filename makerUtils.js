@@ -53,9 +53,6 @@ async function getPriceDistributions(lt){
     let markPrice = parseFloat(await lt.getPrice());
     let indexPrice = parseFloat(await lt.getIndexPrice());
 
-    console.log("markPrice", markPrice);
-    console.log("indexPrice", indexPrice);
-
     const longPrice = Math.min(markPrice, indexPrice)  * (1 - parseFloat(config.SPREAD))
     const shortPrice = Math.max(markPrice, indexPrice)  * (1 + parseFloat(config.SPREAD))
 
