@@ -21,12 +21,17 @@ async function make_market(lts){
                 let config = getConfig()
 
                 let {markPrice, indexPrice, longPrices, shortPrices} = await getPriceDistributions(lt)
+                const { buyOrders,  sellOrders } = await lt.getMyOrders()
+                
+                let best_buy = buyOrders[buyOrders.length-1].price
+                let best_sell = sellOrders[sellOrders.length-1].price
 
-
-                if (longPrices[0] > indexPrice  | shortPrices[0] < indexPrice | longPrices[0] < (Math.min(markPrice, indexPrice) * (1-config.BID_UPDATE_GAP)) | shortPrices[0] > (Math.max(markPrice, indexPrice) * (1+config.BID_UPDATE_GAP))){
+                if (best_buy > indexPrice | best_sell < indexPrice | best_buy > markPrice | best_sell < markPrice ){
                     console.log(`Conditional update for ${lt.amm} ${indexPrice} ${longPrices[0]} ${shortPrices[0]}`)
                     await updateOrders(lt);
                 }
+
+
 
                 await new Promise(r => setTimeout(r, 1000));
             }
