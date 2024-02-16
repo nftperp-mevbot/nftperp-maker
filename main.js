@@ -61,7 +61,7 @@ async function regularUpdates(){
 }
 
 async function main() {
-    let res = await axios.get("http://live.nftperp.xyz/contracts");
+    let res = await axios.get(process.env.API_URL + "/contracts");
     let amms = res.data.data.amms;
 
     for (let amm in amms) {
