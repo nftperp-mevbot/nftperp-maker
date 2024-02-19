@@ -26,8 +26,42 @@ async function make_market(lts){
                 let best_buy = buyOrders[buyOrders.length-1].price
                 let best_sell = sellOrders[sellOrders.length-1].price
 
-                if (best_buy > indexPrice | best_sell < indexPrice | best_buy > markPrice | best_sell < markPrice ){
-                    console.log(`Conditional update for ${lt.amm} ${indexPrice} ${longPrices[0]} ${shortPrices[0]}`)
+                let update = false;
+
+                try{
+                    if (best_buy > indexPrice){
+                        update = true;
+                    }
+                } catch (e) {
+                }
+
+                try{
+                    if (best_sell < indexPrice){
+                        update = true;
+                    }
+                }
+                catch (e) {
+                }
+
+                try{
+                    if (best_buy > markPrice){
+                        update = true;
+                    }
+                } catch (e) {
+                }
+
+                try{
+                    if (best_sell < markPrice){
+                        update = true;
+                    }
+                } catch (e) {
+                }
+
+
+
+
+                if (update){
+                    console.log(`Conditional update for ${lt.amm} ${indexPrice}`)
                     await updateOrders(lt);
                 }
 
