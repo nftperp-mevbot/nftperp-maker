@@ -23,8 +23,22 @@ async function make_market(lts){
                 let {markPrice, indexPrice, longPrices, shortPrices} = await getPriceDistributions(lt)
                 const { buyOrders,  sellOrders } = await lt.getMyOrders()
                 
-                let best_buy = buyOrders[buyOrders.length-1].price
-                let best_sell = sellOrders[sellOrders.length-1].price
+
+                let best_buy;
+                try{
+                    best_buy = buyOrders[buyOrders.length-1].price
+                } catch (e) {
+                    best_buy = indexPrice;
+                }
+
+                let best_sell;
+
+                try{
+                    best_sell = sellOrders[sellOrders.length-1].price
+                } catch (e) {
+                    best_sell = indexPrice;
+                }
+
 
                 let update = false;
 
