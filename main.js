@@ -23,59 +23,11 @@ async function make_market(lts){
                 let {markPrice, indexPrice, longPrices, shortPrices} = await getPriceDistributions(lt)
                 const { buyOrders,  sellOrders } = await lt.getMyOrders()
                 
+                let best_buy = buyOrders[buyOrders.length-1].price
+                let best_sell = sellOrders[sellOrders.length-1].price
 
-                let best_buy;
-                try{
-                    best_buy = buyOrders[buyOrders.length-1].price
-                } catch (e) {
-                    best_buy = indexPrice;
-                }
-
-                let best_sell;
-
-                try{
-                    best_sell = sellOrders[sellOrders.length-1].price
-                } catch (e) {
-                    best_sell = indexPrice;
-                }
-
-
-                let update = false;
-
-                try{
-                    if (best_buy > indexPrice){
-                        update = true;
-                    }
-                } catch (e) {
-                }
-
-                try{
-                    if (best_sell < indexPrice){
-                        update = true;
-                    }
-                }
-                catch (e) {
-                }
-
-                try{
-                    if (best_buy > markPrice){
-                        update = true;
-                    }
-                } catch (e) {
-                }
-
-                try{
-                    if (best_sell < markPrice){
-                        update = true;
-                    }
-                } catch (e) {
-                }
-
-
-
-
-                if (update){
-                    console.log(`Conditional update for ${lt.amm} ${indexPrice}`)
+                if (best_buy > indexPrice | best_sell < indexPrice | best_buy > markPrice | best_sell < markPrice ){
+                    console.log(`Conditional update for ${lt.amm} ${indexPrice} ${longPrices[0]} ${shortPrices[0]}`)
                     await updateOrders(lt);
                 }
 
@@ -87,6 +39,8 @@ async function make_market(lts){
             await new Promise(r => setTimeout(r, 7000));
         } catch (e) {
             console.log("Error in make market", e)
+            await new Promise(r => setTimeout(r, 60000));
+
         }
 
     }
